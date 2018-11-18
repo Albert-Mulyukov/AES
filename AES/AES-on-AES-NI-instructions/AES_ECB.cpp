@@ -838,14 +838,17 @@ int main()
 	AES_ECB aes;
 
 	/* File names */
+	char task;
 	char keyFilename[100];
 	char inputFilename[100];
 	char outputFilename[100];
+	printf("encryption (e) or decryption (d) : ");
+	scanf("%c", &task);
 	printf("Key file name : ");
 	scanf("%s", keyFilename);
-	printf("\nInput file name : ");
+	printf("Input file name : ");
 	scanf("%s", inputFilename);
-	printf("\nOutput file name : ");
+	printf("Output file name : ");
 	scanf("%s", outputFilename);
 	//const char keyFilename[4] = "key";
 	//const char inputFilename[10] = "video.mp4";
@@ -941,22 +944,13 @@ int main()
 		unsigned char State[16];
 		unsigned char *tmp = (unsigned char *)malloc((bytesRead+16)*sizeof(unsigned char));
 		size_t res;
-		//aes.encrypt(Buffer, bytesRead, tmp, bytesRead+16, &res);
-		aes.decrypt(Buffer, bytesRead, tmp, bytesRead, &res);
-		/*for (states_it = 0; states_it < nStatesInBuffer; states_it++) {
-			// Init current state matrix
-			memcpy(State, Buffer + states_it * 16, 16);
-
-			// AES execution
-			//aes.encrypt(State, 16, tmp, 32, &res);
-			aes.decrypt(State, 16, tmp, 16, &res);
-
-			// Replace the original data on the buffer with the result.
-			memcpy(Buffer + states_it * 16, tmp, 16);
-			if (states_it % 5000 == 0) {
-				printf("Processed %lu%% from the buffer       \r", (states_it + 1) * 100 / nStatesInBuffer);
-			}
-		}*/
+		if (task == 'e')
+			aes.encrypt(Buffer, bytesRead, tmp, bytesRead + 16, &res);
+		else if (task == 'd')
+			aes.decrypt(Buffer, bytesRead, tmp, bytesRead, &res);
+		else
+			printf("Nothing done, wrong task ( not 'e' or 'd' )\n");
+		
 		printf("Data processed in %Lf seconds    \n"
 			"", ((long double)clock() - clockCounter) / CLOCKS_PER_SEC);
 
@@ -981,30 +975,4 @@ int main()
 	printf("Processed: %lu bytes \nHDD I/O operations: %d I/Os\n", processedBytes, hdd_cont);
 	printf("Time elapsed: %lu seconds (aprox).\n", totalTime);
 	Pause();
-
-	/*
-	unsigned char m[32] = { 0x00, 0x11,  0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff,
-							0x1e, 0x11,  0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
-	unsigned char tmp[64] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-							 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-							 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-							 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-	unsigned char tmp1[64] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-							 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-							 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-							 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-
-
-	for (int i = 0; i < 32; ++i)
-		std::cout << std::hex << (int)m[i] << " ";
-	std::cout << "\n";
-	aes.encrypt(m, 32, tmp, 64, &res);
-	for (int i = 0; i < 64; ++i)
-		std::cout << std::hex << (int)tmp[i] << " ";
-	std::cout << "\n";
-	aes.decrypt(tmp, res, tmp1, 32, &res);
-	for (int i = 0; i < 64; ++i)
-		std::cout << std::hex << (int)tmp1[i] << " ";
-	std::cout << "\n";*/
-	system("pause");
 }
