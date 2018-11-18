@@ -671,7 +671,7 @@ __global__ void ExecuteAES(byte operation, byte* gpuBuffer, byte* ExpandKey_gpu,
 
         /* Run the AES algorithm */
         if (operation == DECRYPT) {
-            AddRoundKey(State, 14, ExpandKey_gpu);
+            AddRoundKey(State, rounds, ExpandKey_gpu);
             ShiftRows(State, DECRYPT);
             SubBytes(State, DECRYPT);
             for (round_it = rounds - 1; round_it > 0; round_it--) {
