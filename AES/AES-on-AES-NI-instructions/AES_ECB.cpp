@@ -920,6 +920,7 @@ int main()
 	unsigned long nStatesInBuffer = 0L;
 	clock_t clockCounter;
 	unsigned long totalTime = 0L;
+	long double processedTime;
 	while (bytesRead = LoadDataBuffer(inFile)) {
 		printf("Processing data from buffer                                   \r");
 		fflush(stdout);
@@ -951,8 +952,9 @@ int main()
 		else
 			printf("Nothing done, wrong task ( not 'e' or 'd' )\n");
 		
+		processedTime = ((long double)clock() - clockCounter) / CLOCKS_PER_SEC;
 		printf("Data processed in %Lf seconds    \n"
-			"", ((long double)clock() - clockCounter) / CLOCKS_PER_SEC);
+			"", processedTime);
 
 		totalTime += ((unsigned long)clock() - clockCounter) / CLOCKS_PER_SEC;
 
@@ -974,5 +976,6 @@ int main()
 	printf("\n\nPROCESS FINISHED!!\n");
 	printf("Processed: %lu bytes \nHDD I/O operations: %d I/Os\n", processedBytes, hdd_cont);
 	printf("Time elapsed: %lu seconds (aprox).\n", totalTime);
+	printf("\nSpeed : %LF MB/s\n", processedBytes / processedTime / 1000000);
 	Pause();
 }

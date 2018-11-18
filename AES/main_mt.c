@@ -782,9 +782,11 @@ int main(int argc, char** argv) {
         printf("\n\nPROCESS FINISHED!!\n");
         printf("Processed: %lu bytes \nHDD I/O operations: %d I/Os\n", processedBytes, hdd_cont);
         printf("Time elapsed: %g seconds (aprox).\n", elapsed);
+        printf("\nSpeed : %LF MB/s\n", processedBytes / processedTime / 1000000);
         Pause();
         return (EXIT_SUCCESS);
     } else {
         printf("Execution command: '$>./AES <operation> <key_length> <input_file> <output_file> <key_file>'\n");
+        Pause();
     }
 }

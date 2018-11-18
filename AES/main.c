@@ -661,6 +661,7 @@ int main(int argc, char** argv) {
     /* Clock variables to show the time elapsed */
     clock_t clockCounter;
     unsigned long totalTime = 0L;
+	long double processedTime;
 
     if (argc == 6) {
         initAES(argv[1], argv[2], &inFile, &outFile, keyFile, argv[3], argv[4], argv[5]);
@@ -699,8 +700,9 @@ int main(int argc, char** argv) {
                     printf("Processed %lu%% from the buffer       \r", (states_it + 1) *100 / nStatesInBuffer);
                 }
             }
+			processedTime = ((long double) clock() - clockCounter) / CLOCKS_PER_SEC;
             printf("Data processed in %Lf seconds    \n"
-                    "", ((long double) clock() - clockCounter) / CLOCKS_PER_SEC);
+                    "", processedTime);
 
             totalTime += ((unsigned long) clock() - clockCounter) / CLOCKS_PER_SEC;
 
@@ -721,6 +723,7 @@ int main(int argc, char** argv) {
         printf("\n\nPROCESS FINISHED!!\n");
         printf("Processed: %lu bytes \nHDD I/O operations: %d I/Os\n", processedBytes, hdd_cont);
         printf("Time elapsed: %lu seconds (aprox).\n", totalTime);
+		printf("\nSpeed : %LF MB/s\n", processedBytes / processedTime / 1000000);
         Pause();
         return (EXIT_SUCCESS);
     } else {
