@@ -660,11 +660,15 @@ int main(int argc, char** argv) {
 
     /* Clock variables to show the time elapsed */
     clock_t clockCounter;
-    unsigned long totalTime = 0L;
+	clock_t totalClockCounter;
+	long double totalProcessedTime = 0;
 	long double processedTime;
+	long double totalTime;
 
     if (argc == 6) {
         initAES(argv[1], argv[2], &inFile, &outFile, keyFile, argv[3], argv[4], argv[5]);
+
+		totalClockCounter = clock();
 
         /* Load from the file and process it*/
         while (bytesRead = LoadDataBuffer(inFile)) {
@@ -683,7 +687,7 @@ int main(int argc, char** argv) {
                 memset(Buffer + bytesRead, ((nStatesInBuffer * 16) - bytesRead), ((nStatesInBuffer * 16) - bytesRead));
             }
 
-            /* Start timing */
+            /* Start process timing */
             clockCounter = clock();
 
             /* Process every state matrix from the buffer */
@@ -704,7 +708,7 @@ int main(int argc, char** argv) {
             printf("Data processed in %Lf seconds    \n"
                     "", processedTime);
 
-            totalTime += ((unsigned long) clock() - clockCounter) / CLOCKS_PER_SEC;
+            totalProcessedTime += processedTime;
 
             // Write the buffer to the output file
             bytesWritten = WriteBuffer(Buffer, nStatesInBuffer, outFile, (*argv[1] == 'd') ? DECRYPT : ENCRYPT);
@@ -719,11 +723,15 @@ int main(int argc, char** argv) {
             processedBytes += bytesRead;
         }
 
+		totalTime = ((long double)clock() - totalClockCounter) / CLOCKS_PER_SEC;
+
         closeAES(inFile, outFile);
         printf("\n\nPROCESS FINISHED!!\n");
         printf("Processed: %lu bytes \nHDD I/O operations: %d I/Os\n", processedBytes, hdd_cont);
-        printf("Time elapsed: %lu seconds (aprox).\n", totalTime);
-		printf("\nSpeed : %LF MB/s\n", processedBytes / processedTime / 1000000);
+        printf("Time elapsed : %lu seconds (aprox).\n", (unsigned long)totalProcessedTime);
+		printf("Total time   : %lu seconds (aprox).\n", (unsigned long)totalTime);
+		printf("\nProcessing speed : %LF MB/s\n", processedBytes / totalProcessedTime / 1000000);
+		printf("Real speed       : %LF MB/s\n", processedBytes / totalTime / 1000000);
         Pause();
         return (EXIT_SUCCESS);
     } else {

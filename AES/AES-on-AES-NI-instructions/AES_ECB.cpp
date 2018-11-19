@@ -836,6 +836,15 @@ void closeAES(FILE* in, FILE * out) {
 int main()
 {
 	AES_ECB aes;
+	int bytesRead, bytesWritten;
+	int hdd_cont = 0;
+	unsigned long processedBytes = 0L;
+	unsigned long nStatesInBuffer = 0L;
+	clock_t clockCounter;
+	clock_t totalClockCounter;
+	long double totalProcessedTime = 0;
+	long double totalTime;
+	long double processedTime;
 
 	/* File names */
 	char task;
@@ -896,6 +905,8 @@ int main()
 		printf("Output file \"%s\" created and opened successfully\n", outputFilename);
 	}
 
+	totalClockCounter = clock();
+
 	/*Key reading*/
 	int expkey_it, klong = 0;
 	unsigned char Key[32];
@@ -914,13 +925,6 @@ int main()
 
 
 	/* Load from the file and process it*/
-	int bytesRead, bytesWritten;
-	int hdd_cont = 0;
-	unsigned long processedBytes = 0L;
-	unsigned long nStatesInBuffer = 0L;
-	clock_t clockCounter;
-	unsigned long totalTime = 0L;
-	long double processedTime;
 	while (bytesRead = LoadDataBuffer(inFile)) {
 		printf("Processing data from buffer                                   \r");
 		fflush(stdout);
@@ -937,7 +941,7 @@ int main()
 			memset(Buffer + bytesRead, ((nStatesInBuffer * 16) - bytesRead), ((nStatesInBuffer * 16) - bytesRead));
 		}
 
-		/* Start timing */
+		/* Start process timing */
 		clockCounter = clock();
 
 		/* Process every state matrix from the buffer */
@@ -956,7 +960,7 @@ int main()
 		printf("Data processed in %Lf seconds    \n"
 			"", processedTime);
 
-		totalTime += ((unsigned long)clock() - clockCounter) / CLOCKS_PER_SEC;
+		totalProcessedTime += processedTime;
 
 		// Write the buffer to the output file
 		bytesWritten = WriteBuffer(tmp, nStatesInBuffer, outFile, ENCRYPT);
@@ -972,10 +976,14 @@ int main()
 		processedBytes += bytesRead;
 	}
 
+	totalTime = ((long double)clock() - totalClockCounter) / CLOCKS_PER_SEC;
+
 	closeAES(inFile, outFile);
 	printf("\n\nPROCESS FINISHED!!\n");
 	printf("Processed: %lu bytes \nHDD I/O operations: %d I/Os\n", processedBytes, hdd_cont);
-	printf("Time elapsed: %lu seconds (aprox).\n", totalTime);
-	printf("\nSpeed : %LF MB/s\n", processedBytes / processedTime / 1000000);
+	printf("Time elapsed : %lu seconds (aprox).\n", (unsigned long)totalProcessedTime);
+	printf("Total time   : %lu seconds (aprox).\n", (unsigned long)totalTime);
+	printf("\nProcessing speed : %LF MB/s\n", processedBytes / totalProcessedTime / 1000000);
+	printf("Real speed       : %LF MB/s\n", processedBytes / totalTime / 1000000);
 	Pause();
 }
