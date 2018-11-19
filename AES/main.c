@@ -737,5 +737,5 @@ int main(int argc, char** argv) {
     } else {
         printf("Execution command: '$>./AES <operation> <key_length> <input_file> <output_file> <key_file>'\n");
 		Pause();
-	}
+	} 
 }
