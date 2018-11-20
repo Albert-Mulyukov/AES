@@ -51,7 +51,7 @@
 // So define the data buffer length as the max number of matrix times its size
 #define MAX_BUFFER_LENGTH STATE_SIZE*NUM_STATE_BUFFER
 // Thread pool size definition
-#define THREAD_POOL_SIZE 8
+#define THREAD_POOL_SIZE 4
 
 typedef unsigned char byte;
 
@@ -722,7 +722,8 @@ int main(int argc, char** argv) {
     struct timespec start, finish;
     struct timespec totalStart, totalFinish;
     double elapsed;
-    double totalElapsed;
+    double totalElapsed = 0;
+    double totalTime;
 
     // Thread identifying array
     pthread_t *thread_ids = malloc(THREAD_POOL_SIZE * sizeof(pthread_t));
@@ -768,6 +769,7 @@ int main(int argc, char** argv) {
             
             elapsed = (finish.tv_sec - start.tv_sec);
             elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+            totalElapsed += elapsed;
 
             // Write the buffer to the output file
             bytesWritten = WriteBuffer(Buffer, nStatesInBuffer, outFile, (*argv[1] == 'd') ? DECRYPT : ENCRYPT);
@@ -783,16 +785,16 @@ int main(int argc, char** argv) {
         }
 
         clock_gettime(CLOCK_MONOTONIC, &totalFinish);
-        totalElapsed = (totalFinish.tv_sec - totalStart.tv_sec);
-        totalElapsed += (totalFinish.tv_nsec - totalStart.tv_nsec) / 1000000000.0;
+        totalTime = (totalFinish.tv_sec - totalStart.tv_sec);
+        totalTime += (totalFinish.tv_nsec - totalStart.tv_nsec) / 1000000000.0;
 
         closeAES(inFile, outFile);
         printf("\n\nPROCESS FINISHED!!\n");
         printf("Processed: %lu bytes \nHDD I/O operations: %d I/Os\n", processedBytes, hdd_cont);
-        printf("Time elapsed : %g seconds (aprox).\n", elapsed);
-        printf("Total time   : %g seconds (aprox).\n", totalElapsed);
-        printf("\nProcessing speed : %lf MB/s\n", processedBytes / elapsed / 1000000);
-        printf("Real speed       : %lf MB/s\n", processedBytes / totalElapsed / 1000000);
+        printf("Time elapsed : %g seconds (aprox).\n", totalElapsed);
+        printf("Total time   : %g seconds (aprox).\n", totalTime);
+        printf("\nProcessing speed : %lf MB/s\n", processedBytes / totalElapsed / 1000000);
+        printf("Real speed       : %lf MB/s\n", processedBytes / totalTime / 1000000);
         Pause();
         return (EXIT_SUCCESS);
     } else {
