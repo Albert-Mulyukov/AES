@@ -665,6 +665,15 @@ int main(int argc, char** argv) {
 	long double processedTime;
 	long double totalTime;
 
+#ifdef CBC
+	/* TMP */
+	byte tmp[4][4] =  { 0x00, 0x00, 0x00, 0x00, 
+						0x00, 0x00, 0x00, 0x00, 
+						0x00, 0x00, 0x00, 0x00, 
+						0x00, 0x00, 0x00, 0x00 };
+	byte tmp_prev[4][4];
+#endif
+
     if (argc == 6) {
         initAES(argv[1], argv[2], &inFile, &outFile, keyFile, argv[3], argv[4], argv[5]);
 
@@ -694,9 +703,26 @@ int main(int argc, char** argv) {
             for (states_it = 0; states_it < nStatesInBuffer; states_it++) {
                 // Init current state matrix
                 memcpy(State, Buffer + states_it * 16, 16);
+#ifdef CBC
+				memcpy(tmp_prev, tmp, 16);
+				memcpy(tmp, State, 16);
 
                 // AES execution
+				if (CYPHER_OP == ENCRYPT)
+					if (states_it != 0)
+						for (int i = 0; i < 4; i++)
+							for (int j = 0; j < 4; j++)
+								State[i][j] ^= *(Buffer + (states_it - 1) * 16 + 4 * i + j);
                 executeAES(State, CYPHER_OP);
+				if (CYPHER_OP == DECRYPT)
+					if (states_it != 0)
+						for (int i = 0; i < 4; i++)
+							for (int j = 0; j < 4; j++)
+								State[i][j] ^= tmp_prev[i][j];
+#else
+				// AES execution
+				executeAES(State, CYPHER_OP);
+#endif
 
                 // Replace the original data on the buffer with the result.
                 memcpy(Buffer + states_it * 16, State, 16);
