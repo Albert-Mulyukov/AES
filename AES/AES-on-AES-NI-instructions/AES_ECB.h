@@ -133,16 +133,16 @@ private:
 	const AES_ECB & operator= (const AES_ECB&);
 	unsigned int expKey128(const unsigned char *pbKey);
 	unsigned int expKey192(const unsigned char *pbKey);
-	unsigned int expKey256();
+	unsigned int expKey256(const unsigned char *pbKey);
 	unsigned int encryptBlock128(const unsigned char *pbInput,unsigned char *pbOutput);
 	unsigned int encryptBlock192(const unsigned char *pbInput,unsigned char *pbOutput);
-	unsigned int encryptBlock256();
+	unsigned int encryptBlock256(const unsigned char *pbInput,unsigned char *pbOutput);
 
 
 
 	unsigned int decryptBlock128(const unsigned char *pbInput,unsigned char *pbOutput);
 	unsigned int decryptBlock192(const unsigned char *pbInput,unsigned char *pbOutput);
-	unsigned int decryptBlock256();
+	unsigned int decryptBlock256(const unsigned char *pbInput,unsigned char *pbOutput);
 
 	unsigned char *m_pbExpEncKey;
 	unsigned char *m_pbExpDecKey;
