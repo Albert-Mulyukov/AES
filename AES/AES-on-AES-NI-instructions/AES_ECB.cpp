@@ -3,6 +3,9 @@
 #include <cstring>//for memset
 #include <iostream>
 #include <time.h>
+#include <xmmintrin.h>
+#include <malloc.h>
+
 
 
 #include "ntstatus.h"
@@ -22,7 +25,7 @@
 
 unsigned char Buffer[MAX_BUFFER_LENGTH];
 
-#define KEY_SIZE 128
+#define KEY_SIZE 256
 
 AES_ECB::AES_ECB():m_pbExpDecKey(nullptr), m_pbExpEncKey(nullptr),m_szbKey(NULL),m_pfuncDecBlock(nullptr),m_pfuncEncBlock(nullptr),m_pfuncExpKey(nullptr)
 {
@@ -55,8 +58,8 @@ unsigned int AES_ECB::destroyKey()
 			//RETURN expection
 			break;
 		}
-		delete[] m_pbExpEncKey;
-		delete[] m_pbExpDecKey;
+		_aligned_free(m_pbExpEncKey);
+		_aligned_free(m_pbExpDecKey);
 	}
 	m_szbKey=0;
 	m_pfuncDecBlock=nullptr;
@@ -75,8 +78,8 @@ unsigned int AES_ECB::setKey(const unsigned char *pbKey, const size_t &szbKey)
 	case(16):
 		{
 			//if 128 bit AES
-		m_pbExpEncKey = new (std::nothrow) unsigned char[11*16];
-		m_pbExpDecKey = new (std::nothrow) unsigned char[11*16];
+		m_pbExpEncKey = (__m128*)_aligned_malloc(11 * sizeof(__m128), sizeof(__m128));
+		m_pbExpDecKey = (__m128*)_aligned_malloc(11 * sizeof(__m128), sizeof(__m128));
 		m_szbKey=szbKey;
 	
 		//Set functions
@@ -88,8 +91,8 @@ unsigned int AES_ECB::setKey(const unsigned char *pbKey, const size_t &szbKey)
 	case(24):
 		{
 			//if 192 bit AES
-		m_pbExpEncKey = new (std::nothrow) unsigned char[13*16];
-		m_pbExpDecKey = new (std::nothrow) unsigned char[13*16];
+		m_pbExpEncKey = (__m128*)_aligned_malloc(13 * sizeof(__m128), sizeof(__m128));
+		m_pbExpDecKey = (__m128*)_aligned_malloc(13 * sizeof(__m128), sizeof(__m128));
 		m_szbKey=szbKey;
 			
 		//Set functions
@@ -101,8 +104,8 @@ unsigned int AES_ECB::setKey(const unsigned char *pbKey, const size_t &szbKey)
 	case(32):
 		{
 		//if 256 bit AES
-		m_pbExpEncKey = new (std::nothrow) unsigned char[15 * 16];
-		m_pbExpDecKey = new (std::nothrow) unsigned char[15 * 16];
+		m_pbExpEncKey = (__m128*)_aligned_malloc(15 * sizeof(__m128), sizeof(__m128));
+		m_pbExpDecKey = (__m128*)_aligned_malloc(15 * sizeof(__m128), sizeof(__m128));
 		m_szbKey = szbKey;
 
 		//Set functions
@@ -439,17 +442,18 @@ unsigned int AES_ECB::expKey256(const unsigned char *pbKey)
 	__asm {
 		mov edx, pbKey;
 		mov eax, [this];
+		mov ebx, [this];
 		mov eax, [eax + m_pbExpEncKey];
-		mov ecx, [eax + m_pbExpDecKey];
+		mov ebx, [ebx + m_pbExpDecKey];
 
 		movdqu	xmm1, [edx]; loading the AES key
 		movdqa[eax + 16 * 0], xmm1
-		movdqa[ecx + 16 * 14], xmm1; Storing key in memory
+		movdqa[ebx + 16 * 14], xmm1; Storing key in memory
 
 		movdqu	xmm4, [edx + 16]; loading the AES key
 		movdqa[eax + 16 * 1], xmm4
 		aesimc	xmm0, xmm4
-		movdqa[ecx + 16 * 13], xmm0; Storing key in memory
+		movdqa[ebx + 16 * 13], xmm0; Storing key in memory
 
 		pxor xmm3, xmm3; Required for the key_expansion.
 
@@ -462,7 +466,7 @@ unsigned int AES_ECB::expKey256(const unsigned char *pbKey)
 		pxor	xmm1, xmm2
 		movdqa[eax + 16 * 2], xmm1
 		aesimc	xmm5, xmm1
-		movdqa[ecx + 16 * 12], xmm5
+		movdqa[ebx + 16 * 12], xmm5
 
 		aeskeygenassist xmm2, xmm1, 0x1; Generating round key 3
 		pshufd	xmm2, xmm2, 10101010b
@@ -473,7 +477,7 @@ unsigned int AES_ECB::expKey256(const unsigned char *pbKey)
 		pxor	xmm4, xmm2
 		movdqa[eax + 16 * 3], xmm4
 		aesimc	xmm0, xmm4
-		movdqa[ecx + 16 * 11], xmm0
+		movdqa[ebx + 16 * 11], xmm0
 
 		aeskeygenassist xmm2, xmm4, 0x2; Generating round key 4
 		pshufd	xmm2, xmm2, 11111111b
@@ -484,7 +488,7 @@ unsigned int AES_ECB::expKey256(const unsigned char *pbKey)
 		pxor	xmm1, xmm2
 		movdqa[eax + 16 * 4], xmm1
 		aesimc	xmm5, xmm1
-		movdqa[ecx + 16 * 10], xmm5
+		movdqa[ebx + 16 * 10], xmm5
 
 		aeskeygenassist xmm2, xmm1, 0x2; Generating round key 5
 		pshufd	xmm2, xmm2, 10101010b
@@ -495,7 +499,7 @@ unsigned int AES_ECB::expKey256(const unsigned char *pbKey)
 		pxor	xmm4, xmm2
 		movdqa[eax + 16 * 5], xmm4
 		aesimc	xmm0, xmm4
-		movdqa[ecx + 16 * 9], xmm0
+		movdqa[ebx + 16 * 9], xmm0
 
 		aeskeygenassist xmm2, xmm4, 0x4; Generating round key 6
 		pshufd	xmm2, xmm2, 11111111b
@@ -506,7 +510,7 @@ unsigned int AES_ECB::expKey256(const unsigned char *pbKey)
 		pxor	xmm1, xmm2
 		movdqa[eax + 16 * 6], xmm1
 		aesimc	xmm5, xmm1
-		movdqa[ecx + 16 * 8], xmm5
+		movdqa[ebx + 16 * 8], xmm5
 
 		aeskeygenassist xmm2, xmm1, 0x4; Generating round key 7
 		pshufd	xmm2, xmm2, 10101010b
@@ -517,7 +521,7 @@ unsigned int AES_ECB::expKey256(const unsigned char *pbKey)
 		pxor	xmm4, xmm2
 		movdqa[eax + 16 * 7], xmm4
 		aesimc xmm0, xmm4
-		movdqa[ecx + 16 * 7], xmm0
+		movdqa[ebx + 16 * 7], xmm0
 
 		aeskeygenassist xmm2, xmm4, 0x8; Generating round key 8
 		pshufd	xmm2, xmm2, 11111111b
@@ -528,7 +532,7 @@ unsigned int AES_ECB::expKey256(const unsigned char *pbKey)
 		pxor	xmm1, xmm2
 		movdqa[eax + 16 * 8], xmm1
 		aesimc	xmm5, xmm1
-		movdqa[ecx + 16 * 6], xmm5
+		movdqa[ebx + 16 * 6], xmm5
 
 		aeskeygenassist xmm2, xmm1, 0x8; Generating round key 9
 		pshufd	xmm2, xmm2, 10101010b
@@ -539,7 +543,7 @@ unsigned int AES_ECB::expKey256(const unsigned char *pbKey)
 		pxor	xmm4, xmm2
 		movdqa[eax + 16 * 9], xmm4
 		aesimc	xmm0, xmm4
-		movdqa[ecx + 16 * 5], xmm0
+		movdqa[ebx + 16 * 5], xmm0
 
 		aeskeygenassist xmm2, xmm4, 0x10; Generating round key 10
 		pshufd	xmm2, xmm2, 11111111b
@@ -550,7 +554,7 @@ unsigned int AES_ECB::expKey256(const unsigned char *pbKey)
 		pxor	xmm1, xmm2
 		movdqa[eax + 16 * 10], xmm1
 		aesimc	xmm5, xmm1
-		movdqa[ecx + 16 * 4], xmm5
+		movdqa[ebx + 16 * 4], xmm5
 
 		aeskeygenassist xmm2, xmm1, 0x10; Generating round key 11
 		pshufd	xmm2, xmm2, 10101010b
@@ -561,7 +565,7 @@ unsigned int AES_ECB::expKey256(const unsigned char *pbKey)
 		pxor	xmm4, xmm2
 		movdqa[eax + 16 * 11], xmm4
 		aesimc	xmm0, xmm4
-		movdqa[ecx + 16 * 3], xmm0
+		movdqa[ebx + 16 * 3], xmm0
 
 		aeskeygenassist xmm2, xmm4, 0x20; Generating round key 12
 		pshufd	xmm2, xmm2, 11111111b
@@ -572,7 +576,7 @@ unsigned int AES_ECB::expKey256(const unsigned char *pbKey)
 		pxor	xmm1, xmm2
 		movdqa[eax + 16 * 12], xmm1
 		aesimc	xmm5, xmm1
-		movdqa[ecx + 16 * 2], xmm5
+		movdqa[ebx + 16 * 2], xmm5
 
 		aeskeygenassist xmm2, xmm1, 0x20; Generating round key 13
 		pshufd	xmm2, xmm2, 10101010b
@@ -583,7 +587,7 @@ unsigned int AES_ECB::expKey256(const unsigned char *pbKey)
 		pxor	xmm4, xmm2
 		movdqa[eax + 16 * 13], xmm4
 		aesimc	xmm0, xmm4
-		movdqa[ecx + 16 * 1], xmm0
+		movdqa[ebx + 16 * 1], xmm0
 
 		aeskeygenassist xmm2, xmm4, 0x40; Generating round key 14
 		pshufd	xmm2, xmm2, 11111111b
@@ -593,7 +597,7 @@ unsigned int AES_ECB::expKey256(const unsigned char *pbKey)
 		pxor	xmm1, xmm3
 		pxor	xmm1, xmm2
 		movdqa[eax + 16 * 14], xmm1
-		movdqa[ecx + 16 * 0], xmm1
+		movdqa[ebx + 16 * 0], xmm1
 	}
 	return 0;
 }
@@ -804,21 +808,21 @@ unsigned int AES_ECB::encryptBlock256(const unsigned char *pbInput,unsigned char
 unsigned int AES_ECB::encrypt(const unsigned char *pbInput, const size_t szbInput, unsigned char *pbOutput, const size_t szbOutput, size_t *szbResult)
 {
 	if(!m_szbKey){ return 1;/*exception*/}
-	//unsigned char bPadBlock[16];
-	//unsigned int iPadind=16-(szbInput%16);
+	unsigned char bPadBlock[16];
+	unsigned int iPadind=16-(szbInput%16);
 	size_t cBlock=szbInput/16;
 	*szbResult=0;
-	//if((szbResult && !szbOutput))*szbResult=(cBlock+(iPadind/16))*16;//если запршивается тьребуемый размер
+	if((szbResult && !szbOutput))*szbResult=(cBlock+(iPadind/16))*16;//если запршивается тьребуемый размер
 	
-	//if(!szbOutput)return 0;//если запршивается тьребуемый размер
+	if(!szbOutput)return 0;//если запршивается тьребуемый размер
 
-	/*if(szbOutput<((iPadind/16)+cBlock)*16)//если нету памяти для расшифровки
+	if(szbOutput<((iPadind/16)+cBlock)*16)//если нету памяти для расшифровки
 	{
 		*szbResult=0;
 		return 1;
-	}*/
+	}
 
-	/*for(unsigned int i=0;i<szbInput%16;++i)
+	for(unsigned int i=0;i<szbInput%16;++i)
 	{
 		bPadBlock[i]=pbInput[(cBlock*16)+i];
 	}
@@ -826,41 +830,41 @@ unsigned int AES_ECB::encrypt(const unsigned char *pbInput, const size_t szbInpu
 	for(unsigned int i=szbInput%16;i<16;++i)
 	{
 		bPadBlock[i]=iPadind;
-	}*/
+	}
 	
 	for(unsigned int i=0;i<cBlock;++i)
 	{
 		(this->*m_pfuncEncBlock)(pbInput+(i*16),pbOutput+(i*16));
 		(*szbResult)+=16;
 	}
-	//(this->*m_pfuncEncBlock)(bPadBlock,pbOutput+(cBlock*16));
-	//(*szbResult)+=16;
-	//::memset(bPadBlock,0,16);
+	(this->*m_pfuncEncBlock)(bPadBlock,pbOutput+(cBlock*16));
+	(*szbResult)+=16;
+	::memset(bPadBlock,0,16);
 	return 0;
 }
 unsigned int AES_ECB::decrypt(const unsigned char *pbInput, const size_t szbInput, unsigned char *pbOutput, const size_t szbOutput, size_t *szbResult)
 {
 	*szbResult=0;
-	//if(!m_szbKey){ return 1;/*exception*/}
-	//if(szbInput%16) return 1;
-	//unsigned char bPadBlock[16];
-	//(this->*m_pfuncDecBlock)(pbInput+(((szbInput/16)-1)*16),bPadBlock);
-	//if(bPadBlock[15]>16){return 1;::memset(bPadBlock,0,16);}
-	//if(szbResult && !szbOutput) *szbResult=szbInput-bPadBlock[15];
+	if(!m_szbKey){ return 1;/*exception*/}
+	if(szbInput%16) return 1;
+	unsigned char bPadBlock[16];
+	(this->*m_pfuncDecBlock)(pbInput+(((szbInput/16)-1)*16),bPadBlock);
+	if(bPadBlock[15]>16){return 1;::memset(bPadBlock,0,16);}
+	if(szbResult && !szbOutput) *szbResult=szbInput-bPadBlock[15];
 	
-	//if(szbOutput<szbInput-bPadBlock[15]){return 1;::memset(bPadBlock,0,16);}
+	if(szbOutput<szbInput-bPadBlock[15]){return 1;::memset(bPadBlock,0,16);}
 
-	for(unsigned int i=0; i< (szbInput/16)/*-1*/;++i)
+	for(unsigned int i=0; i< (szbInput/16)-1;++i)
 	{
 		(this->*m_pfuncDecBlock)(pbInput+(i*16),pbOutput+(i*16));
 		(*szbResult)+=16;
 	}
-	/*for(unsigned int i=0;i<16-bPadBlock[15];++i)
+	for(unsigned int i=0;i<16-bPadBlock[15];++i)
 	{
 		*(pbOutput+(((szbInput/16)-1)*16)+i)=bPadBlock[i];
 		(*szbResult)++;
 	}
-	::memset(bPadBlock,0,16);*/
+	::memset(bPadBlock,0,16);
 	return 0;
 }
 unsigned int AES_ECB::decryptBlock128(const unsigned char *pbInput,unsigned char *pbOutput)

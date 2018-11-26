@@ -144,8 +144,8 @@ private:
 	unsigned int decryptBlock192(const unsigned char *pbInput,unsigned char *pbOutput);
 	unsigned int decryptBlock256(const unsigned char *pbInput,unsigned char *pbOutput);
 
-	unsigned char *m_pbExpEncKey;
-	unsigned char *m_pbExpDecKey;
+	__m128 *m_pbExpEncKey;
+	__m128 *m_pbExpDecKey;
 	unsigned int (__thiscall AES_ECB::*m_pfuncExpKey)(const unsigned char *);
 	unsigned int (__thiscall AES_ECB::*m_pfuncEncBlock)(const unsigned char *,unsigned char *);
 	unsigned int (__thiscall AES_ECB::*m_pfuncDecBlock)(const unsigned char *,unsigned char *);
