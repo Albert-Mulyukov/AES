@@ -1,2 +1,2 @@
 all:
-	gcc -o gost gost.c
+	gcc -o gost gost.c -O3
