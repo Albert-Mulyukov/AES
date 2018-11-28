@@ -1,0 +1,10 @@
+AES (ECB)
+	128bit
+		CUDA	encryption: processing - 140 Mb/s, real - 45 Mb/s
+			decryption: processing - 145 Mb/s, real - 45 Mb/s
+	192bit
+		CUDA	encryption: processing - 135 Mb/s, real - 45 Mb/s
+			decryption: processing - 140 Mb/s, real - 45 Mb/s
+	256bit
+		CUDA	encryption: processing - 130 Mb/s, real - 45 Mb/s
+			decryption: processing - 130 Mb/s, real - 45 Mb/s
