@@ -31,13 +31,8 @@
  * lowest-numbered, in the bit string.
  */
 
-
-/* A 32-bit data type */
-#ifdef __alpha  /* Any other 64-bit machines? */
-typedef unsigned int word32;
-#else
-typedef unsigned long word32;
-#endif
+/* The header */
+#include "gost.h"
 
 /*
  * The standard does not specify the contents of the 8 4 bit->4 bit
@@ -81,9 +76,7 @@ static unsigned char k21[256];
  * Build byte-at-a-time subtitution tables.
  * This must be called once for global setup.
  */
-void
-kboxinit(void)
-{
+void kboxinit(void) {
 	int i;
 	for (i = 0; i < 256; i++) {
 		k87[i] = k8[i >> 4] << 4 | k7[i & 15];
@@ -105,9 +98,7 @@ kboxinit(void)
 #if __GNUC__
 __inline__
 #endif
-static word32
-f(word32 x)
-{
+static word32 f(word32 x) {
 	/* Do substitutions */
 #if 0
 	/* This is annoyingly slow */
@@ -131,9 +122,7 @@ f(word32 x)
  *
  * The keys are defined similarly, with bit 256 being the msb of key[7].
  */
-void
-gostcrypt(word32 const in[2], word32 out[2], word32 const key[8])
-{
+void gostcrypt(word32 const in[2], word32 out[2], word32 const key[8]) {
 	register word32 n1, n2; /* As named in the GOST */
 
 	n1 = in[0];
@@ -188,9 +177,7 @@ gostcrypt(word32 const in[2], word32 out[2], word32 const key[8])
  * You could define an expanded key, or just write the code twice,
  * as done here.
  */
-void
-gostdecrypt(word32 const in[2], word32 out[2], word32 const key[8])
-{
+void gostdecrypt(word32 const in[2], word32 out[2], word32 const key[8]) {
 	register word32 n1, n2; /* As named in the GOST */
 
 	n1 = in[0];
@@ -262,10 +249,8 @@ gostdecrypt(word32 const in[2], word32 out[2], word32 const key[8])
 #define C1 0x01010104
 #define C2 0x01010101
 
-void
-gostofb(word32 const *in, word32 *out, int len,
-	word32 const iv[2], word32 const key[8])
-{
+void gostofb(word32 const *in, word32 *out, int len,
+	word32 const iv[2], word32 const key[8]) {
 	word32 temp[2];         /* Counter */
 	word32 gamma[2];        /* Output XOR value */
 
@@ -297,10 +282,8 @@ gostofb(word32 const *in, word32 *out, int len,
  * The IV is modified in place.  Again, len is in *blocks*.
  */
 
-void
-gostcfbencrypt(word32 const *in, word32 *out, int len,
-	       word32 iv[2], word32 const key[8])
-{
+void gostcfbencrypt(word32 const *in, word32 *out, int len,
+	       word32 iv[2], word32 const key[8]) {
 	while (len--) {
 		gostcrypt(iv, iv, key);
 		iv[0] = *out++ ^= iv[0];
@@ -308,10 +291,8 @@ gostcfbencrypt(word32 const *in, word32 *out, int len,
 	}
 }
 
-void
-gostcfbdecrypt(word32 const *in, word32 *out, int len,
-	       word32 iv[2], word32 const key[8])
-{
+void gostcfbdecrypt(word32 const *in, word32 *out, int len,
+	       word32 iv[2], word32 const key[8]) {
 	word32 t;
 	while (len--) {
 		gostcrypt(iv, iv, key);
@@ -331,9 +312,7 @@ gostcfbdecrypt(word32 const *in, word32 *out, int len,
  * The last block should be padded to 64 bits with zeros.
  * len is the number of *blocks* in the input.
  */
-void
-gostmac(word32 const *in, int len, word32 out[2], word32 const key[8])
-{
+void gostmac(word32 const *in, int len, word32 out[2], word32 const key[8]) {
 	register word32 n1, n2; /* As named in the GOST */
 
 	n1 = 0;
@@ -367,75 +346,47 @@ gostmac(word32 const *in, int len, word32 out[2], word32 const key[8])
 	out[1] = n2;
 }
 
+#ifdef TEST
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
-#define NUM_STATE_BUFFER 33553920
-#define MAX_BUFFER_LENGTH 64*NUM_STATE_BUFFER
-
-unsigned char buffer[MAX_BUFFER_LENGTH];
-
-int load_data_buffer(FILE* input_file) {
-    int bytes_read = 0;
-
-    if (feof(input_file)) {
-        return bytes_read;
-    }
-    bytes_read = fread(buffer, 1, MAX_BUFFER_LENGTH, input_file);
-
-	return bytes_read;
-}
-
 
 /* Designed to cope with 15-bit rand() implementations */
 #define RAND32 ((word32)rand() << 17 ^ (word32)rand() << 9 ^ rand())
 
 int main(void) {
 	word32 key[8];
-	word32 iv[2];
-	word32* cipher;
+	word32 plain[2];
+	word32 cipher[2];
 	int i, j;
-    int bytes_read;
-    int length;
-    FILE* in_file;
-
-    long double clock_counter;
 
 	kboxinit();
 
-    in_file = fopen("test_file.txt", "rb");
-
 	printf("GOST 21847-89 test driver.\n");
 
-    bytes_read = load_data_buffer(in_file);
-    fflush(stdout);
+	for (i = 0; i < 1000; i++) {
+		for (j = 0; j < 8; j++)
+			key[j] = RAND32;
+		plain[0] = RAND32;
+		plain[1] = RAND32;
 
-    length = bytes_read/8;
-    if (bytes_read % 8 != 0) {
-        length++;
-        memset(buffer + bytes_read,
-                (length*8 - bytes_read),
-                (length*8 - bytes_read));
-    }
+		printf("%3d\r", i);
+		fflush(stdout);
 
-    cipher = (word32*)malloc(bytes_read * sizeof(word32));
-    for (j = 0; j < 8; j++)
-        key[j] = RAND32;
-    iv[0] = RAND32;
-    iv[1] = RAND32;
+		gostcrypt(plain, cipher, key);
+		for (j = 0; j < 99; j++)
+			gostcrypt(cipher, cipher, key);
+		for (j = 0; j < 100; j++)
+			gostdecrypt(cipher, cipher, key);
 
-    clock_counter = clock();
-
-    gostcfbencrypt((word32*)buffer, cipher, length, iv, key);
-    gostcfbdecrypt(cipher, (word32*)buffer, length, iv, key);
-
-    clock_counter = ((long double)clock() - clock_counter) / CLOCKS_PER_SEC;
-
-    printf("Data processed in %Lf seconds\n", clock_counter);
-
-    fclose(in_file);
-
+		if (plain[0] != cipher[0] || plain[1] != cipher[1]) {
+			fprintf(stderr, "\nError! i = %d\n", i);
+			return 1;
+		}
+	}
+	printf("All tests passed.\n");
 	return 0;
 }
+
+#endif /* TEST */
+
