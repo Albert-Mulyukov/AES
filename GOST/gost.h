@@ -51,4 +51,10 @@ void gostmac(word32 const *in, int len, word32 out[2], word32 const key[8]);
 /* Read the data */
 int load_data_buffer(FILE* input_file);
 
+/* Create a test file */
+void create_file(FILE* file, char* file_name, long int n_bytes);
+
+/* Increase a size of a file */
+void increase_file(FILE* file, char* file_name, long int n_bytes);
+
 #endif /* GOST_H */
