@@ -1,10 +1,40 @@
 AES (ECB)
 	128bit
-		CUDA	encryption: processing - 140 Mb/s, real - 45 Mb/s
-			decryption: processing - 145 Mb/s, real - 45 Mb/s
+		CUDA		encryption: processing - 140 Mb/s, real - 45 Mb/s
+					decryption: processing - 145 Mb/s, real - 45 Mb/s
+
+		simple c 	encryption: processing - 57  Mb/s, real - 52 Mb/s
+					decryption: processing - 49  Mb/s, real - 47 Mb/s
+
+		pthread c 	encryption: processing - 62  Mb/s, real - 60 Mb/s
+					decryption: processing - 63  Mb/s, real - 60 Mb/s
 	192bit
-		CUDA	encryption: processing - 135 Mb/s, real - 45 Mb/s
-			decryption: processing - 140 Mb/s, real - 45 Mb/s
+		CUDA		encryption: processing - 135 Mb/s, real - 45 Mb/s
+					decryption: processing - 140 Mb/s, real - 45 Mb/s
+
+		simple c 	encryption: processing - 47  Mb/s, real - 45 Mb/s
+					decryption: processing - 41  Mb/s, real - 40 Mb/s
+
+		pthread c 	encryption: processing - 61  Mb/s, real - 58 Mb/s
+					decryption: processing - 63  Mb/s, real - 60 Mb/s
 	256bit
-		CUDA	encryption: processing - 130 Mb/s, real - 45 Mb/s
-			decryption: processing - 130 Mb/s, real - 45 Mb/s
+		CUDA		encryption: processing - 130 Mb/s, real - 45 Mb/s
+					decryption: processing - 130 Mb/s, real - 45 Mb/s
+
+		simple c 	encryption: processing - 40  Mb/s, real - 39 Mb/s
+					decryption: processing - 35  Mb/s, real - 34 Mb/s
+
+		pthread c 	encryption: processing - 57  Mb/s, real - 55 Mb/s
+					decryption: processing - 62  Mb/s, real - 59 Mb/s
+
+
+AES (CBC)
+	128bit
+		simple c 	encryption: processing - 54  Mb/s, real - 51 Mb/s
+					decryption: processing - 48  Mb/s, real - 46 Mb/s
+	192bit
+		simple c 	encryption: processing - 46  Mb/s, real - 44 Mb/s
+					decryption: processing - 40  Mb/s, real - 39 Mb/s
+	256bit
+		simple c 	encryption: processing - 39  Mb/s, real - 38 Mb/s
+					decryption: processing - 34  Mb/s, real - 33 Mb/s
