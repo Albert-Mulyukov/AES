@@ -1,12 +1,11 @@
 import os, random, struct
-from Crypto.Cipher import AES
 import numpy as np
 from Crypto.Cipher import AES
 from Crypto import Random
 import time
 
 
-def encrypt_file(key, input_path, chunksize=64*1024):
+def encrypt_file(key, input_path, chunksize=64*1024, use_aesni=True):
     """ Encrypts a file using AES (CBC mode) with the
         given key.
 
@@ -28,14 +27,14 @@ def encrypt_file(key, input_path, chunksize=64*1024):
             chunksize must be divisible by 16.
     """
     output_path = os.path.join(os.path.dirname(input_path), 'encrypted_' + os.path.basename(input_path))
-    iv = Random.new().read(16)
-    encryptor = AES.new(key, AES.MODE_CBC, iv)
+    #iv = Random.new().read(16)
+    encryptor = AES.new(key, AES.MODE_CTR, use_aesni=use_aesni)
     filesize = os.path.getsize(input_path)
     encryption_time = []
     with open(input_path, 'rb') as infile:
         with open(output_path, 'wb') as outfile:
             outfile.write(struct.pack('<Q', filesize))
-            outfile.write(iv)
+            # outfile.write(iv)
 
             while True:
                 chunk = infile.read(chunksize)
@@ -53,21 +52,10 @@ def encrypt_file(key, input_path, chunksize=64*1024):
         return output_path, np.sum(np.array(encryption_time))
 
 
-"""
-chunk = infile.read()
-if len(chunk) % 16 != 0:
-    chunk += b' ' * (16 - len(chunk) % 16)
-
-start = time.time()
-crypted_chunk = encryptor.encrypt(chunk)
-past_time = time.time() - start
-outfile.write(crypted_chunk)
-return output_path, past_time
-
-"""
 
 
-def decrypt_file(key, input_path, chunksize=24 * 1024):
+
+def decrypt_file(key, input_path, chunksize=64 * 1024, use_aesni = True):
     """ Decrypts a file using AES (CBC mode) with the
         given key. Parameters are similar to encrypt_file,
         with one difference: output_path, if not supplied
@@ -76,20 +64,25 @@ def decrypt_file(key, input_path, chunksize=24 * 1024):
         output_path will be 'aaa.zip')
     """
     output_path = os.path.join(os.path.dirname(input_path), 'decrypted_' + os.path.basename(input_path))
-
+    decryption_time = []
     with open(input_path, 'rb') as infile:
         origsize = struct.unpack('<Q', infile.read(struct.calcsize('Q')))[0]
-        iv = infile.read(16)
-        decryptor = AES.new(key, AES.MODE_CBC, iv)
+        # iv = infile.read(16)
+        decryptor = AES.new(key, AES.MODE_CTR, use_aesni=use_aesni)
 
         with open(output_path, 'wb') as outfile:
             while True:
                 chunk = infile.read(chunksize)
                 if len(chunk) == 0:
                     break
-                outfile.write(decryptor.decrypt(chunk))
+
+                start = time.time()
+                decrypted_chunk = decryptor.decrypt(chunk)
+                decryption_time.append(time.time() - start)
+
+                outfile.write(decrypted_chunk)
 
             outfile.truncate(origsize)
-    return output_path
+    return output_path, np.sum(np.array(decryption_time))
 
 
