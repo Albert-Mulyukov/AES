@@ -4,10 +4,11 @@
 #include <time.h>
 #include "gost.h"
 
-#define N_TESTS 10
+#define N_TESTS 1
 
 #define FILE_NAME "test.txt"
-#define N_BYTES 10*1024*1024
+#define N_MB 10
+#define N_BYTES N_MB*1024*1024
 #define N_BYTES_STEP 10*1024*1024
 
 unsigned char buffer[MAX_BUFFER_LENGTH];
@@ -19,7 +20,9 @@ int main(void) {
 	int i, j;
     int bytes_read;
     int length;
-    long double clock_counter;
+    long double clock_cfbenc;
+    long double clock_cfbdec;
+    long double clock_ofbenc;
     long double time_total = 0;
     FILE* in_file;
     FILE* res_file;
@@ -37,12 +40,10 @@ int main(void) {
     create_file(in_file, FILE_NAME, N_BYTES);
     res_file = fopen("result.txt", "w");
 
-    for (i = 0; i < N_TESTS; i++) {
-        fprintf(res_file, "%d\t\t", i+1);
-    } 
-    fprintf(res_file, "\n");
+    fprintf(res_file, "CFB encrypt\t\tCFB decrypt\t\tOFB encrypt\n");//\t\tOFB encrypt\n");
 
     for (i = 0; i < N_TESTS; i++) {
+
         in_file = fopen(FILE_NAME, "rb");
 
         bytes_read = load_data_buffer(in_file);
@@ -58,26 +59,32 @@ int main(void) {
 
         cipher = (word32*)malloc(bytes_read * sizeof(word32));
 
-        clock_counter = clock();
-
+        clock_cfbenc = clock();
         gostcfbencrypt((word32*)buffer, cipher, length, iv, key);
+        clock_cfbenc = ((long double)clock() - clock_cfbenc) / CLOCKS_PER_SEC;
+        printf("Data encrypteded in %Lf seconds with CFB mode\n", clock_cfbenc);
+
+        clock_cfbdec = clock();
         gostcfbdecrypt(cipher, (word32*)buffer, length, iv, key);
-        
-        clock_counter = ((long double)clock() - clock_counter) / CLOCKS_PER_SEC;
+        clock_cfbdec = ((long double)clock() - clock_cfbdec) / CLOCKS_PER_SEC;
+        printf("Data decrypteded in %Lf seconds with CFB mode\n", clock_cfbdec);
 
-        time_total += clock_counter;
+        clock_ofbenc = clock();
+        gostofb((word32*)buffer, cipher, length, iv, key);
+        clock_ofbenc = ((long double)clock() - clock_ofbenc) / CLOCKS_PER_SEC;
+        printf("Data encrypteded in %Lf seconds with OFB mode\n", clock_ofbenc);
 
-        printf("Data processed in %Lf seconds\n", clock_counter);
 
-        fprintf(res_file, "%Lf\t", clock_counter);
+        fprintf(res_file, "%Lf\t\t%Lf\t\t%Lf\n",
+                clock_cfbenc, clock_cfbdec, clock_ofbenc);
+        fprintf(res_file, "%Lf\t\t%Lf\t\t%Lf\n",
+                N_MB/clock_cfbenc, N_MB/clock_cfbdec, N_MB/clock_ofbenc);
 
         free(cipher);
         fclose(in_file);
 
-        increase_file(in_file, FILE_NAME, N_BYTES_STEP);
+//        increase_file(in_file, FILE_NAME, N_BYTES_STEP);
     } 
-
-    fprintf(res_file, "\ntotal time: %Lf sec", time_total);
 
     fclose(res_file);
 
