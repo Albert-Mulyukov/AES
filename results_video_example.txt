@@ -64,12 +64,15 @@ RC6 (ECB)
 	256bit			encryption: processing - 210  Mb/s
 					decryption: processing - 220  Mb/s
 
+
 Magma (C)
 	CFB				encryption: processing - 22  Mb/s
 					decryption: processing - 21  Mb/s
 
 	OFB				encryption: processing - 21  Mb/s
 					decryption: processing - 21  Mb/s
+
+
 Magma (pygost)
 	CFB				encryption: processing - 120  Kb/s
 					decryption: processing - 130  Kb/s
