@@ -1,5 +1,4 @@
 import os, random, struct
-from Crypto.Cipher import AES
 import numpy as np
 from Crypto.Cipher import AES
 from Crypto import Random
@@ -28,14 +27,14 @@ def encrypt_file(key, input_path, chunksize=64*1024, use_aesni=True):
             chunksize must be divisible by 16.
     """
     output_path = os.path.join(os.path.dirname(input_path), 'encrypted_' + os.path.basename(input_path))
-    iv = Random.new().read(16)
-    encryptor = AES.new(key, AES.MODE_CFB, iv, use_aesni=use_aesni)
+    #iv = Random.new().read(16)
+    encryptor = AES.new(key, AES.MODE_CTR, use_aesni=use_aesni)
     filesize = os.path.getsize(input_path)
     encryption_time = []
     with open(input_path, 'rb') as infile:
         with open(output_path, 'wb') as outfile:
             outfile.write(struct.pack('<Q', filesize))
-            outfile.write(iv)
+            # outfile.write(iv)
 
             while True:
                 chunk = infile.read(chunksize)
@@ -68,8 +67,8 @@ def decrypt_file(key, input_path, chunksize=64 * 1024, use_aesni = True):
     decryption_time = []
     with open(input_path, 'rb') as infile:
         origsize = struct.unpack('<Q', infile.read(struct.calcsize('Q')))[0]
-        iv = infile.read(16)
-        decryptor = AES.new(key, AES.MODE_CFB, iv, use_aesni=use_aesni)
+        # iv = infile.read(16)
+        decryptor = AES.new(key, AES.MODE_CTR, use_aesni=use_aesni)
 
         with open(output_path, 'wb') as outfile:
             while True:
