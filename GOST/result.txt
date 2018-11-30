@@ -1,0 +1,2 @@
+CFB encrypt	CFB decrypt		OFB encrypt
+22.068966		20.645161		21.333333
