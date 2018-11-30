@@ -5,7 +5,7 @@ AES (ECB)
 
 		NI instructions
 			encryption: processing - 1510 Mb/s, real - 210 Mb/s
-			decryption: processing - 1440 Mb/s, real - 190 Mb/s
+			decryption: processing - 1550 Mb/s, real - 195 Mb/s
 
 	192bit
 		CUDA	encryption: processing - 440 Mb/s, real - 140 Mb/s
@@ -13,11 +13,11 @@ AES (ECB)
 
 		NI instructions
 			encryption: processing - 1380 Mb/s, real - 200 Mb/s
-			decryption: processing - 1280 Mb/s, real - 200 Mb/s
+			decryption: processing - 1400 Mb/s, real - 190 Mb/s
 	256bit
 		CUDA	encryption: processing - 385 Mb/s, real - 130 Mb/s
 			decryption: processing - 395 Mb/s, real - 130 Mb/s
 
 		NI instructions
 			encryption: processing - 1250 Mb/s, real - 200 Mb/s
-			decryption: processing - 1220 Mb/s, real - 150 Mb/s
+			decryption: processing - 1260 Mb/s, real - 190 Mb/s
