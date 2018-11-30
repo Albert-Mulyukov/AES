@@ -38,3 +38,28 @@ AES (CBC)
 	256bit
 		simple c 	encryption: processing - 39  Mb/s, real - 38 Mb/s
 					decryption: processing - 34  Mb/s, real - 33 Mb/s
+
+
+Kuznechik
+	ECB				encryption: processing - 142  Mb/s
+					decryption: processing - 64  Mb/s
+
+	CBC				encryption: processing - 136  Mb/s
+					decryption: processing - 64  Mb/s
+
+	CFB				encryption: processing - 133  Mb/s
+					decryption: processing - 144  Mb/s
+
+	OFB				encryption: processing - 133  Mb/s
+					decryption: processing - 140  Mb/s
+
+
+RC6 (ECB)
+	128bit			encryption: processing - 215  Mb/s
+					decryption: processing - 215  Mb/s
+
+	192bit			encryption: processing - 210  Mb/s
+					decryption: processing - 220  Mb/s
+
+	256bit			encryption: processing - 210  Mb/s
+					decryption: processing - 220  Mb/s
